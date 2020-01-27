@@ -1,12 +1,16 @@
-# Commands list for Lazy Redteam & Pentesters \m/
+# Commands list for Lazy Redteamer & Pentesters \m/
 
 # Port Scanning
 masscan -e tun0 -p0-65535,U:0-65535 --rate 700 -oL scan.10.10.10.173.all 10.10.10.173
+
 nmap -sC -sV -oN nmap.scan.tcp -p 22,80,8888 10.10.10.173
 
 nmap -sC -sV -p- -oA nmap/all 10.10.10.10 
+
 nmap -sU -vv -oA nmap/alludp 10.10.10.10
+
 unicornscan 10.1.1.0/24:80
+
 masscan -p22,80,445 10.1.1.0/24
 
 # Port Knocking
